@@ -3,7 +3,7 @@ import sys
 import os
 
 # Add project root to path to import from backend
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from backend.utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease
 
 st.set_page_config(page_title="Sakhi AI - Multi-Disease Detection", layout="wide", initial_sidebar_state="collapsed")
