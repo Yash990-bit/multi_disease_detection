@@ -7,13 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        teal: {
-          50: '#f0f9f8',
-          100: '#e0f2f1',
-          500: '#00897b',
-          600: '#00796b',
-          700: '#00695c',
-          900: '#0d3b36',
+        brand: {
+          50: '#f5f7ff',
+          100: '#ebf0ff',
+          500: '#4f46e5', // Indigo 600
+          600: '#4338ca',
+          700: '#3730a3',
+          900: '#1e1b4b', // Deep Indigo
+        },
+        slate: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          900: '#0f172a',
         }
       },
       fontFamily: {

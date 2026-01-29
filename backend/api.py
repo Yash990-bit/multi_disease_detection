@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any, List
+from sqlalchemy import create_api_engine, Column, Integer, String, Float, DateTime, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from datetime import datetime
 import sys
 import os
 
@@ -9,18 +12,42 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease
 
-app = FastAPI(title="Sakhi AI Prediction API")
+# --- Database Setup ---
+DATABASE_URL = "sqlite:///./backend/predictions.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-# Enable CORS for frontend integration
+class PredictionLog(Base):
+    __tablename__ = "prediction_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    disease_type = Column(String)
+    input_data = Column(String) # JSON string of inputs
+    result = Column(String)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+Base.metadata.create_all(bind=engine)
+
+# --- Dependency ---
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# --- FastAPI App ---
+app = FastAPI(title="Vitalise AI Pro API", description="AI-powered medical risk analysis backend.")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with actual allowed origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Request Models
+# --- Pydantic Models ---
 class DiabetesInput(BaseModel):
     pregnancies: int
     glucose: float
@@ -32,71 +59,63 @@ class DiabetesInput(BaseModel):
     age: int
 
 class HeartInput(BaseModel):
-    age: int
-    sex: str
-    cp: str
-    trestbps: float
-    chol: float
-    fbs: str
-    restecg: str
-    thalch: float
-    exang: str
-    oldpeak: float
-    slope: str
-    ca: int
-    thal: str
+    age: int; sex: str; cp: str; trestbps: float; chol: float
+    fbs: str; restecg: str; thalch: float; exang: str; oldpeak: float
+    slope: str; ca: int; thal: str
 
 class LiverInput(BaseModel):
-    age: int
-    gender: int
-    total_bilirubin: float
-    direct_bilirubin: float
-    alkaline_phosphotase: int
-    alamine_aminotransferase: int
-    aspartate_aminotransferase: int
-    total_protiens: float
-    albumin: float
-    albumin_and_globulin_ratio: float
+    age: int; gender: int; total_bilirubin: float; direct_bilirubin: float
+    alkaline_phosphotase: int; alamine_aminotransferase: int; aspartate_aminotransferase: int
+    total_protiens: float; albumin: float; albumin_and_globulin_ratio: float
 
+# --- Endpoints ---
 @app.get("/")
-async def root():
-    return {"message": "Sakhi AI Backend is running"}
+def read_root():
+    return {"status": "online", "model": "Sakhi AI Pro v1.0"}
 
 @app.post("/predict/diabetes")
-async def diabetes_prediction(data: DiabetesInput):
+def api_predict_diabetes(data: DiabetesInput, db: Session = Depends(get_db)):
     try:
-        features = [
-            data.pregnancies, data.glucose, data.blood_pressure,
-            data.skin_thickness, data.insulin, data.bmi,
-            data.pedigree_function, data.age
-        ]
+        features = [data.pregnancies, data.glucose, data.blood_pressure, data.skin_thickness, 
+                    data.insulin, data.bmi, data.pedigree_function, data.age]
         result = predict_diabetes(features)
-        return {"prediction": result}
+        
+        # Save to DB
+        log = PredictionLog(disease_type="Diabetes", input_data=str(data.dict()), result=result)
+        db.add(log); db.commit()
+        
+        return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/heart")
-async def heart_prediction(data: HeartInput):
+def api_predict_heart(data: HeartInput, db: Session = Depends(get_db)):
     try:
-        input_dict = data.dict()
-        result = predict_heart_disease(input_dict)
-        return {"prediction": result}
+        result = predict_heart_disease(data.dict())
+        log = PredictionLog(disease_type="Heart", input_data=str(data.dict()), result=result)
+        db.add(log); db.commit()
+        return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/liver")
-async def liver_prediction(data: LiverInput):
+def api_predict_liver(data: LiverInput, db: Session = Depends(get_db)):
     try:
-        features = [
-            data.age, data.gender, data.total_bilirubin,
-            data.direct_bilirubin, data.alkaline_phosphotase,
-            data.alamine_aminotransferase, data.aspartate_aminotransferase,
-            data.total_protiens, data.albumin, data.albumin_and_globulin_ratio
-        ]
+        features = [data.age, data.gender, data.total_bilirubin, data.direct_bilirubin,
+                    data.alkaline_phosphotase, data.alamine_aminotransferase, 
+                    data.aspartate_aminotransferase, data.total_protiens, data.albumin, 
+                    data.albumin_and_globulin_ratio]
         result = predict_liver_disease(features)
-        return {"prediction": result}
+        log = PredictionLog(disease_type="Liver", input_data=str(data.dict()), result=result)
+        db.add(log); db.commit()
+        return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/history")
+def get_history(limit: int = 10, db: Session = Depends(get_db)):
+    logs = db.query(PredictionLog).order_by(PredictionLog.id.desc()).limit(limit).all()
+    return logs
 
 if __name__ == "__main__":
     import uvicorn
