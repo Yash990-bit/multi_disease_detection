@@ -1,10 +1,14 @@
 import joblib
 import numpy as np
 import pandas as pd
+import os
 
-diabetes_model = joblib.load('models/diabetes_model.sav')
-heart_data = joblib.load('models/heart_model.sav') 
-liver_model = joblib.load('models/liver_model.sav')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
+
+diabetes_model = joblib.load(os.path.join(MODELS_DIR, 'diabetes_model.sav'))
+heart_data = joblib.load(os.path.join(MODELS_DIR, 'heart_model.sav')) 
+liver_model = joblib.load(os.path.join(MODELS_DIR, 'liver_model.sav'))
 
 def predict_diabetes(input_data):
     """
