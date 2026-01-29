@@ -29,7 +29,7 @@ const PredictDiabetes = () => {
             const response = await axios.post('/api/predict/diabetes', formData)
             setPrediction(response.data.prediction)
         } catch (err) {
-            setError("Backend Error: Connection Refused. Please start the FastAPI server.")
+            setError("Backend Error: Connection Refused. Ensure FastAPI (api.py) is running on port 8000.")
         } finally {
             setLoading(false)
         }
@@ -45,19 +45,19 @@ const PredictDiabetes = () => {
     ]
 
     return (
-        <div className="bg-slate-50 min-h-screen py-16 px-[5%]">
+        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen py-16 px-[5%] transition-colors duration-300">
             <div className="max-w-7xl mx-auto text-center mb-16">
-                <h1 className="text-4xl font-extrabold text-brand-900 mb-4">Diabetes Risk Engine</h1>
-                <p className="text-brand-500 font-semibold text-sm bg-brand-50 inline-block px-4 py-1.5 rounded-full border border-brand-100">
+                <h1 className="text-4xl font-extrabold text-brand-900 dark:text-white mb-4">Diabetes Risk Engine</h1>
+                <p className="text-brand-500 dark:text-brand-400 font-semibold text-sm bg-brand-50 dark:bg-brand-900/30 inline-block px-4 py-1.5 rounded-full border border-brand-100 dark:border-brand-800 transition-colors">
                     Clinical Feature Assessment
                 </p>
             </div>
 
             <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
-                <div className="bg-white p-12 rounded-[40px] border border-slate-200 shadow-xl">
-                    <div className="flex items-center gap-2 mb-8 border-b border-slate-100 pb-4">
-                        <Info className="w-5 h-5 text-brand-500" />
-                        <h3 className="text-brand-900 font-bold text-xl">Diagnostic Parameters</h3>
+                <div className="bg-white dark:bg-slate-800 p-12 rounded-[40px] border border-slate-200 dark:border-slate-700 shadow-xl transition-colors">
+                    <div className="flex items-center gap-2 mb-8 border-b border-slate-100 dark:border-slate-700 pb-4">
+                        <Info className="w-5 h-5 text-brand-500 dark:text-brand-400" />
+                        <h3 className="text-brand-900 dark:text-white font-bold text-xl">Diagnostic Parameters</h3>
                     </div>
 
                     <form onSubmit={handlePredict} className="space-y-6">
@@ -71,10 +71,10 @@ const PredictDiabetes = () => {
                                 { label: 'Pedigree Func', name: 'pedigree_function', type: 'number', step: '0.001' }
                             ].map((field) => (
                                 <div key={field.name}>
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">{field.label}</label>
+                                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">{field.label}</label>
                                     <input
                                         {...field} value={formData[field.name]} onChange={handleChange}
-                                        className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-50 transition-all font-semibold text-brand-900"
+                                        className="w-full px-5 py-3.5 rounded-2xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-brand-50 dark:focus:ring-brand-900/30 transition-all font-semibold text-brand-900 dark:text-white"
                                     />
                                 </div>
                             ))}
@@ -82,31 +82,31 @@ const PredictDiabetes = () => {
 
                         <button
                             type="submit" disabled={loading}
-                            className="w-full bg-brand-500 text-white font-bold py-5 rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center justify-center text-lg mt-10"
+                            className="w-full bg-brand-500 text-white font-bold py-5 rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 dark:shadow-none flex items-center justify-center text-lg mt-10"
                         >
                             {loading ? <Loader2 className="animate-spin mr-3 w-6 h-6" /> : "Initiate AI Diagnostic"}
                         </button>
                     </form>
 
                     {prediction && (
-                        <div className={`mt-10 p-6 rounded-3xl flex items-center gap-4 border ${prediction === 'Diabetic' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                        <div className={`mt-10 p-6 rounded-3xl flex items-center gap-4 border ${prediction === 'Diabetic' ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
                             {prediction === 'Diabetic' ? <AlertCircle className="w-6 h-6" /> : <CheckCircle2 className="w-6 h-6" />}
                             <span className="font-extrabold text-xl uppercase tracking-tighter">Result: {prediction}</span>
                         </div>
                     )}
                     {error && (
-                        <div className="mt-10 p-6 rounded-3xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center gap-3 font-medium">
+                        <div className="mt-10 p-6 rounded-3xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center gap-3 font-medium">
                             <AlertCircle className="w-6 h-6" />
                             {error}
                         </div>
                     )}
                 </div>
 
-                <div className="bg-white p-12 rounded-[40px] border border-slate-200 shadow-xl flex flex-col items-center justify-center text-center">
+                <div className="bg-white dark:bg-slate-800 p-12 rounded-[40px] border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center text-center transition-colors">
                     <div className="w-full h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-                                <PolarGrid stroke="#f1f5f9" />
+                                <PolarGrid stroke="#f1f5f9" className="dark:opacity-10" />
                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 600 }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Radar
@@ -115,8 +115,8 @@ const PredictDiabetes = () => {
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
-                    <h3 className="text-2xl font-bold text-brand-900 mt-10 mb-2">Importance Matrix</h3>
-                    <p className="text-slate-400 max-w-sm">
+                    <h3 className="text-2xl font-bold text-brand-900 dark:text-white mt-10 mb-2 transition-colors">Importance Matrix</h3>
+                    <p className="text-slate-400 dark:text-slate-500 max-w-sm transition-colors">
                         Our AI analyzes these variables in non-linear combinations to determine your unique risk profile.
                     </p>
                 </div>

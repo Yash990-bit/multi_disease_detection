@@ -4,6 +4,6 @@
 
 @layer base {
   body {
-    @apply font-sans antialiased text-gray-900;
+    @apply font-sans antialiased text-gray-900 dark:text-white transition-colors duration-300;
   }
 }
