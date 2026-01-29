@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 import os
 
-dataset = pd.read_csv('datasets/diabetes.csv')
+dataset = pd.read_csv('backend/datasets/diabetes.csv')
 
 zero_columns = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
 

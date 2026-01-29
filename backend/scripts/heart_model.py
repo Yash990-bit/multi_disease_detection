@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 
-df = pd.read_csv('datasets/heart.csv')
+df = pd.read_csv('backend/datasets/heart.csv')
 
 df = df.drop(columns=['id', 'dataset'])
 
@@ -40,5 +40,5 @@ model_data = {
     'model': model,
     'features': list(X.columns)
 }
-joblib.dump(model_data, 'models/heart_model.sav')
+joblib.dump(model_data, 'backend/models/heart_model.sav')
 print("Model saved to models/heart_model.sav")

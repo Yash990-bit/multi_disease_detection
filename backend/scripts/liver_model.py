@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 
-dataset = pd.read_csv('datasets/liver.csv')
+dataset = pd.read_csv('backend/datasets/liver.csv')
 
 dataset['Albumin_and_Globulin_Ratio'] = dataset['Albumin_and_Globulin_Ratio'].fillna(dataset['Albumin_and_Globulin_Ratio'].median())
 
@@ -27,5 +27,5 @@ test_acc = accuracy_score(Y_test, model.predict(X_test))
 print(f"Training Accuracy: {train_acc:.4f}")
 print(f"Test Accuracy: {test_acc:.4f}")
 
-joblib.dump(model, 'models/liver_model.sav')
+joblib.dump(model, 'backend/models/liver_model.sav')
 print("Model saved to models/liver_model.sav")
