@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+import api from '../api'
 import {
     Radar, RadarChart, PolarGrid,
     PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
@@ -26,7 +26,7 @@ const PredictDiabetes = () => {
         setLoading(true)
         setError(null)
         try {
-            const response = await axios.post('/api/predict/diabetes', formData)
+            const response = await api.post('/predict/diabetes', formData)
             setPrediction(response.data.prediction)
         } catch (err) {
             setError("Backend Error: Connection Refused. Ensure FastAPI (api.py) is running on port 8000.")

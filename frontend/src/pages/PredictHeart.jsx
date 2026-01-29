@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+import api from '../api'
 import {
     Radar, RadarChart, PolarGrid,
     PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
@@ -26,7 +26,7 @@ const PredictHeart = () => {
         setLoading(true)
         setError(null)
         try {
-            const response = await axios.post('/api/predict/heart', formData)
+            const response = await api.post('/predict/heart', formData)
             setPrediction(response.data.prediction)
         } catch (err) {
             setError("Backend Error: Please start the FastAPI server.")

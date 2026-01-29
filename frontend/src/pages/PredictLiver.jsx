@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from 'axios'
+import api from '../api'
 import {
     Radar, RadarChart, PolarGrid,
     PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
@@ -28,7 +28,7 @@ const PredictLiver = () => {
         setLoading(true)
         setError(null)
         try {
-            const response = await axios.post('/api/predict/liver', formData)
+            const response = await api.post('/predict/liver', formData)
             setPrediction(response.data.prediction)
         } catch (err) {
             setError("Backend Error: Please start the FastAPI server.")

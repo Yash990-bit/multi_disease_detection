@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../api'
 import { History as HistoryIcon, Clock, Activity, Calendar, Shield, Trash2, Loader2 } from 'lucide-react'
 
 const History = () => {
@@ -9,7 +9,7 @@ const History = () => {
 
     const fetchHistory = async () => {
         try {
-            const response = await axios.get('/api/history')
+            const response = await api.get('/history')
             setLogs(response.data)
         } catch (err) {
             console.error("Failed to fetch history")
@@ -27,7 +27,7 @@ const History = () => {
 
         setDeletingId(id)
         try {
-            await axios.delete(`/api/history/${id}`)
+            await api.delete(`/history/${id}`)
             setLogs(logs.filter(log => log.id !== id))
         } catch (err) {
             alert("Failed to delete record")
