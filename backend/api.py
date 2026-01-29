@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_api_engine, Column, Integer, String, Float, DateTime, create_engine
+from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime
@@ -13,7 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease
 
 # --- Database Setup ---
-DATABASE_URL = "sqlite:///./backend/predictions.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'predictions.db')}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -116,6 +117,15 @@ def api_predict_liver(data: LiverInput, db: Session = Depends(get_db)):
 def get_history(limit: int = 10, db: Session = Depends(get_db)):
     logs = db.query(PredictionLog).order_by(PredictionLog.id.desc()).limit(limit).all()
     return logs
+
+@app.delete("/history/{log_id}")
+def delete_history(log_id: int, db: Session = Depends(get_db)):
+    log = db.query(PredictionLog).filter(PredictionLog.id == log_id).first()
+    if not log:
+        raise HTTPException(status_code=404, detail="Record not found")
+    db.delete(log)
+    db.commit()
+    return {"message": "Record deleted successfully"}
 
 if __name__ == "__main__":
     import uvicorn
