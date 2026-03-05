@@ -14,7 +14,20 @@ from utils.predictor import predict_diabetes, predict_heart_disease, predict_liv
 
 # --- Database Setup ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'predictions.db')}"
+
+# On Vercel, the filesystem is read-only except for /tmp. 
+# We move the database to /tmp to allow writing PredictionLogs.
+if os.environ.get("VERCEL"):
+    DATABASE_PATH = "/tmp/predictions.db"
+    # Copy existing DB to /tmp if it exists in the build (read-only)
+    ORIGINAL_DB = os.path.join(BASE_DIR, 'predictions.db')
+    if os.path.exists(ORIGINAL_DB) and not os.path.exists(DATABASE_PATH):
+        import shutil
+        shutil.copy2(ORIGINAL_DB, DATABASE_PATH)
+else:
+    DATABASE_PATH = os.path.join(BASE_DIR, 'predictions.db')
+
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

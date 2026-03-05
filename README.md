@@ -1,6 +1,6 @@
 # Vitalise AI Pro - Next-Gen Healthcare Analysis
 
-![Vitalise AI Pro Showcase](showcase.png)
+
 
 Vitalise AI Pro is a sophisticated, AI-powered healthcare analysis platform designed to provide instant clinical insights. Leveraging advanced deep learning models, the application empowers both patients and medical professionals with data-driven evaluations for various health conditions.
 
