@@ -1,54 +1,28 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import Column, Integer, String, Float, DateTime, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime
 import sys
 import os
+import json
+from bson import ObjectId
+from pymongo import MongoClient
 
 # Add parent directory to path to import utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease
 
-# --- Database Setup ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# --- MongoDB Setup ---
+MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
+client = MongoClient(MONGODB_URI)
+db = client["multi_disease_db"]
+logs_collection = db["prediction_logs"]
 
-# On Vercel, the filesystem is read-only except for /tmp. 
-# We move the database to /tmp to allow writing PredictionLogs.
-if os.environ.get("VERCEL"):
-    DATABASE_PATH = "/tmp/predictions.db"
-    # Copy existing DB to /tmp if it exists in the build (read-only)
-    ORIGINAL_DB = os.path.join(BASE_DIR, 'predictions.db')
-    if os.path.exists(ORIGINAL_DB) and not os.path.exists(DATABASE_PATH):
-        import shutil
-        shutil.copy2(ORIGINAL_DB, DATABASE_PATH)
-else:
-    DATABASE_PATH = os.path.join(BASE_DIR, 'predictions.db')
-
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-class PredictionLog(Base):
-    __tablename__ = "prediction_logs"
-    id = Column(Integer, primary_key=True, index=True)
-    disease_type = Column(String)
-    input_data = Column(String) # JSON string of inputs
-    result = Column(String)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-Base.metadata.create_all(bind=engine)
-
-# --- Dependency ---
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Helper to serialize MongoDB docs
+def serialize_doc(doc):
+    doc["id"] = str(doc["_id"])
+    del doc["_id"]
+    return doc
 
 # --- FastAPI App ---
 app = FastAPI(title="Vitalise AI Pro API", description="AI-powered medical risk analysis backend.")
@@ -88,57 +62,81 @@ def read_root():
     return {"status": "online", "model": "Sakhi AI Pro v1.0"}
 
 @app.post("/predict/diabetes")
-def api_predict_diabetes(data: DiabetesInput, db: Session = Depends(get_db)):
+def api_predict_diabetes(data: DiabetesInput):
     try:
         features = [data.pregnancies, data.glucose, data.blood_pressure, data.skin_thickness, 
                     data.insulin, data.bmi, data.pedigree_function, data.age]
         result = predict_diabetes(features)
         
-        # Save to DB
-        log = PredictionLog(disease_type="Diabetes", input_data=str(data.dict()), result=result)
-        db.add(log); db.commit()
+        # Save to MongoDB
+        log = {
+            "disease_type": "Diabetes",
+            "input_data": data.dict(),
+            "result": result,
+            "timestamp": datetime.utcnow()
+        }
+        logs_collection.insert_one(log)
         
         return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/heart")
-def api_predict_heart(data: HeartInput, db: Session = Depends(get_db)):
+def api_predict_heart(data: HeartInput):
     try:
         result = predict_heart_disease(data.dict())
-        log = PredictionLog(disease_type="Heart", input_data=str(data.dict()), result=result)
-        db.add(log); db.commit()
+        log = {
+            "disease_type": "Heart",
+            "input_data": data.dict(),
+            "result": result,
+            "timestamp": datetime.utcnow()
+        }
+        logs_collection.insert_one(log)
         return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/liver")
-def api_predict_liver(data: LiverInput, db: Session = Depends(get_db)):
+def api_predict_liver(data: LiverInput):
     try:
         features = [data.age, data.gender, data.total_bilirubin, data.direct_bilirubin,
                     data.alkaline_phosphotase, data.alamine_aminotransferase, 
                     data.aspartate_aminotransferase, data.total_protiens, data.albumin, 
                     data.albumin_and_globulin_ratio]
         result = predict_liver_disease(features)
-        log = PredictionLog(disease_type="Liver", input_data=str(data.dict()), result=result)
-        db.add(log); db.commit()
+        log = {
+            "disease_type": "Liver",
+            "input_data": data.dict(),
+            "result": result,
+            "timestamp": datetime.utcnow()
+        }
+        logs_collection.insert_one(log)
         return {"prediction": result, "timestamp": datetime.now()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/history")
-def get_history(limit: int = 10, db: Session = Depends(get_db)):
-    logs = db.query(PredictionLog).order_by(PredictionLog.id.desc()).limit(limit).all()
-    return logs
+def get_history(limit: int = 50):
+    try:
+        cursor = logs_collection.find().sort("timestamp", -1).limit(limit)
+        logs = [serialize_doc(doc) for doc in cursor]
+        return logs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/history/{log_id}")
-def delete_history(log_id: int, db: Session = Depends(get_db)):
-    log = db.query(PredictionLog).filter(PredictionLog.id == log_id).first()
-    if not log:
-        raise HTTPException(status_code=404, detail="Record not found")
-    db.delete(log)
-    db.commit()
-    return {"message": "Record deleted successfully"}
+def delete_history(log_id: str):
+    try:
+        result = logs_collection.delete_one({"_id": ObjectId(log_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Record not found")
+        return {"message": "Record deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
     import uvicorn
