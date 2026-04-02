@@ -5,7 +5,7 @@ from datetime import datetime
 import sys
 import os
 import json
-from bson import ObjectId
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 
 # Add parent directory to path to import utils
