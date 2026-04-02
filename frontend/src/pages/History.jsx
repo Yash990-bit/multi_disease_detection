@@ -5,14 +5,21 @@ import { History as HistoryIcon, Clock, Activity, Calendar, Shield, Trash2, Load
 const History = () => {
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
     const [deletingId, setDeletingId] = useState(null)
 
     const fetchHistory = async () => {
         try {
             const response = await api.get('/history')
-            setLogs(response.data)
+            if (Array.isArray(response.data)) {
+                setLogs(response.data)
+            } else {
+                setLogs([])
+                setError("Received invalid payload format from the server.")
+            }
         } catch (err) {
-            console.error("Failed to fetch history")
+            console.error("Failed to fetch history", err)
+            setError("Cannot connect to diagnostic database. Server might be booting up or offline.")
         } finally {
             setLoading(false)
         }
@@ -53,6 +60,12 @@ const History = () => {
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500 transition-colors"></div>
                     </div>
+                ) : error ? (
+                    <div className="text-center py-32 bg-white dark:bg-slate-800 rounded-[60px] border border-red-100 dark:border-red-900/30 shadow-sm transition-colors">
+                        <Activity className="w-16 h-16 text-red-500 mx-auto mb-6" />
+                        <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">{error}</h3>
+                        <p className="text-slate-400 mt-2">Try refreshing the page in a few moments.</p>
+                    </div>
                 ) : logs.length === 0 ? (
                     <div className="text-center py-32 bg-white dark:bg-slate-800 rounded-[60px] border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
                         <Shield className="w-16 h-16 text-slate-100 dark:text-slate-700 mx-auto mb-6" />
@@ -77,8 +90,8 @@ const History = () => {
                                 </div>
 
                                 <div className="flex items-center gap-8">
-                                    <div className={`px-6 py-3 rounded-2xl font-black text-xs shadow-inner uppercase tracking-tighter transition-colors ${log.result.includes('Detected') || log.result === 'Diabetic' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'}`}>
-                                        {log.result}
+                                    <div className={`px-6 py-3 rounded-2xl font-black text-xs shadow-inner uppercase tracking-tighter transition-colors ${(log.result || '').includes('Detected') || log.result === 'Diabetic' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'}`}>
+                                        {log.result || 'Unknown'}
                                     </div>
 
                                     <button
