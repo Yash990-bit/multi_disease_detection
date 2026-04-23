@@ -5,5 +5,34 @@
 @layer base {
   body {
     @apply font-sans antialiased text-gray-900 dark:text-white transition-colors duration-300;
+    @apply bg-slate-50 dark:bg-slate-950;
   }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-xl;
+  }
+  
+  .glass-dark {
+    @apply bg-slate-900/40 backdrop-blur-lg border border-slate-800/50 shadow-2xl;
+  }
+
+  .btn-glow {
+    @apply relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-95;
+  }
+
+  .input-glow {
+    @apply focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-300;
+  }
+}
+
+.gradient-bg {
+  background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent),
+              radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.05), transparent);
+}
+
+.dark .gradient-bg {
+  background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.15), transparent),
+              radial-gradient(circle at bottom left, rgba(30, 27, 75, 0.4), transparent);
 }
