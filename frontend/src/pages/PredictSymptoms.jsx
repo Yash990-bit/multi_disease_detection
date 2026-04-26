@@ -21,12 +21,25 @@ const PredictSymptoms = () => {
         setError('');
         setResult(null);
 
+        // Add a timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            if (loading) {
+                setLoading(false);
+                setError('The analysis is taking longer than expected. Please ensure the backend is running.');
+            }
+        }, 30000); // 30 seconds
+
         try {
             const response = await api.post('/predict/symptoms', { text: symptoms });
+            clearTimeout(timeoutId);
             setResult(response.data.prediction);
         } catch (err) {
             console.error(err);
-            setError('Failed to analyze symptoms. Please try again.');
+            clearTimeout(timeoutId);
+            const msg = err.response?.status === 404 
+                ? 'Endpoint not found. Please ensure the backend is deployed with the latest code.' 
+                : 'Failed to analyze symptoms. Please check your connection.';
+            setError(msg);
         } finally {
             setLoading(false);
         }
