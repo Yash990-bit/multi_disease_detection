@@ -17,7 +17,19 @@
             "destination": "backend/api.py"
         },
         {
-            "source": "/(.*)",
+            "source": "/predict/(.*)",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/history",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/about",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/((?!api/).*)",
             "destination": "/index.html"
         }
     ]
