@@ -10,6 +10,11 @@ diabetes_model = joblib.load(os.path.join(MODELS_DIR, 'diabetes_model.sav'))
 heart_data = joblib.load(os.path.join(MODELS_DIR, 'heart_model.sav')) 
 liver_model = joblib.load(os.path.join(MODELS_DIR, 'liver_model.sav'))
 
+nlp_model_path = os.path.join(MODELS_DIR, 'nlp_symptom_model.pkl')
+if os.path.exists(nlp_model_path):
+    nlp_model = joblib.load(nlp_model_path)
+else:
+    nlp_model = None
 def predict_diabetes(input_data):
     """
     input_data: list of 8 features
@@ -46,3 +51,22 @@ def predict_liver_disease(input_data):
     input_as_numpy = np.asarray(input_data).reshape(1, -1)
     prediction = liver_model.predict(input_as_numpy)
     return "Liver Disease Detected" if prediction[0] == 1 else "Healthy Liver"
+
+def predict_symptoms(text: str):
+    """
+    text: raw patient symptom description
+    """
+    if not nlp_model:
+        raise Exception("NLP Symptom model not found.")
+    
+    prediction = nlp_model.predict([text])[0]
+    probs = nlp_model.predict_proba([text])[0]
+    classes = nlp_model.classes_
+    
+    top_3_idx = np.argsort(probs)[-3:][::-1]
+    top_3_predictions = [{"disease": classes[i], "confidence": round(float(probs[i]) * 100, 2)} for i in top_3_idx]
+    
+    return {
+        "primary_prediction": str(prediction),
+        "top_predictions": top_3_predictions
+    }

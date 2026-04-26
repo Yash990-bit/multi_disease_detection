@@ -64,6 +64,7 @@ const Navbar = () => {
                                     exit={{ opacity: 0, y: 10 }}
                                     className="absolute top-full left-0 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-xl py-2 mt-1"
                                 >
+                                    <DropdownLink to="/predict/symptoms">Symptom Triage (NLP)</DropdownLink>
                                     <DropdownLink to="/predict/diabetes">Diabetes Engine</DropdownLink>
                                     <DropdownLink to="/predict/heart">Cardiac Analysis</DropdownLink>
                                     <DropdownLink to="/predict/liver">Hepatic Index</DropdownLink>
@@ -80,10 +81,10 @@ const Navbar = () => {
 
                 {/* Action CTA */}
                 <Link 
-                    to="/predict/diabetes" 
+                    to="/predict/symptoms" 
                     className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/25 hover:bg-indigo-700 transition-all active:scale-95"
                 >
-                    Start Analysis
+                    Start Triage
                 </Link>
             </div>
         </nav>

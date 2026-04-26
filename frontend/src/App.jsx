@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import PredictDiabetes from './pages/PredictDiabetes'
 import PredictHeart from './pages/PredictHeart'
 import PredictLiver from './pages/PredictLiver'
+import PredictSymptoms from './pages/PredictSymptoms'
 import History from './pages/History'
 import About from './pages/About'
 
@@ -20,6 +21,7 @@ function App() {
                         <Route path="/predict/diabetes" element={<PredictDiabetes />} />
                         <Route path="/predict/heart" element={<PredictHeart />} />
                         <Route path="/predict/liver" element={<PredictLiver />} />
+                        <Route path="/predict/symptoms" element={<PredictSymptoms />} />
                         <Route path="/history" element={<History />} />
                         <Route path="/about" element={<About />} />
                     </Routes>

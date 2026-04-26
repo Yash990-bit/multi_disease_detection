@@ -10,7 +10,7 @@ from pymongo import MongoClient
 
 # Add parent directory to path to import utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
-from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease
+from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease, predict_symptoms
 
 # --- MongoDB Setup ---
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
@@ -55,6 +55,9 @@ class LiverInput(BaseModel):
     age: int; gender: int; total_bilirubin: float; direct_bilirubin: float
     alkaline_phosphotase: int; alamine_aminotransferase: int; aspartate_aminotransferase: int
     total_protiens: float; albumin: float; albumin_and_globulin_ratio: float
+
+class SymptomInput(BaseModel):
+    text: str
 
 # --- Endpoints ---
 @app.get("/")
@@ -106,6 +109,21 @@ def api_predict_liver(data: LiverInput):
         result = predict_liver_disease(features)
         log = {
             "disease_type": "Liver",
+            "input_data": data.dict(),
+            "result": result,
+            "timestamp": datetime.utcnow()
+        }
+        logs_collection.insert_one(log)
+        return {"prediction": result, "timestamp": datetime.now()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict/symptoms")
+def api_predict_symptoms(data: SymptomInput):
+    try:
+        result = predict_symptoms(data.text)
+        log = {
+            "disease_type": "Symptoms",
             "input_data": data.dict(),
             "result": result,
             "timestamp": datetime.utcnow()
