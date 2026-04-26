@@ -25,7 +25,11 @@ def serialize_doc(doc):
     return doc
 
 # --- FastAPI App ---
-app = FastAPI(title="Vitalise AI Pro API", description="AI-powered medical risk analysis backend.")
+app = FastAPI(
+    title="Vitalise AI Pro API", 
+    description="AI-powered medical risk analysis backend.",
+    root_path="/api" if os.environ.get("VERCEL") else ""
+)
 
 app.add_middleware(
     CORSMiddleware,
