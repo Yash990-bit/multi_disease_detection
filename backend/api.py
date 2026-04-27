@@ -14,7 +14,8 @@ from utils.predictor import predict_diabetes, predict_heart_disease, predict_liv
 
 # --- MongoDB Setup ---
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
-client = MongoClient(MONGODB_URI)
+# Add a timeout so it doesn't hang the whole server if DB is down
+client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
 db = client["multi_disease_db"]
 logs_collection = db["prediction_logs"]
 
