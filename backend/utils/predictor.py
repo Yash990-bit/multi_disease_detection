@@ -6,67 +6,44 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
-diabetes_model = joblib.load(os.path.join(MODELS_DIR, 'diabetes_model.sav'))
-heart_data = joblib.load(os.path.join(MODELS_DIR, 'heart_model.sav')) 
-liver_model = joblib.load(os.path.join(MODELS_DIR, 'liver_model.sav'))
+# Global variables to cache models after they are loaded
+_models = {}
 
-nlp_model_path = os.path.join(MODELS_DIR, 'nlp_symptom_model.pkl')
-if os.path.exists(nlp_model_path):
-    nlp_model = joblib.load(nlp_model_path)
-else:
-    nlp_model = None
+def get_model(name):
+    if name not in _models:
+        path = os.path.join(MODELS_DIR, name)
+        if os.path.exists(path):
+            print(f"Loading model: {name}")
+            _models[name] = joblib.load(path)
+        else:
+            print(f"ERROR: Model file not found: {path}")
+            return None
+    return _models[name]
+
 def predict_diabetes(input_data):
-    """
-    input_data: list of 8 features
-    """
+    model = get_model('diabetes_model.sav')
+    if not model: return "Model Error"
     input_as_numpy = np.asarray(input_data).reshape(1, -1)
-    prediction = diabetes_model.predict(input_as_numpy)
+    prediction = model.predict(input_as_numpy)
     return "Diabetic" if prediction[0] == 1 else "Not Diabetic"
 
 def predict_heart_disease(input_dict):
-    """
-    input_dict: dictionary of raw inputs (Age, Sex, CP type, etc.)
-    We need to handle the same one-hot encoding as we did in training.
-    """
+    heart_data = get_model('heart_model.sav')
+    if not heart_data: return "Model Error"
     model = heart_data['model']
     expected_features = heart_data['features']
-    
     df = pd.DataFrame([input_dict])
-    
     df_encoded = pd.get_dummies(df)
-    
     for col in expected_features:
         if col not in df_encoded.columns:
             df_encoded[col] = 0
-            
     df_encoded = df_encoded[expected_features]
-    
     prediction = model.predict(df_encoded)
     return "Heart Disease Detected" if prediction[0] == 1 else "Healthy Heart"
 
 def predict_liver_disease(input_data):
-    """
-    input_data: list of 10 features
-    """
+    model = get_model('liver_model.sav')
+    if not model: return "Model Error"
     input_as_numpy = np.asarray(input_data).reshape(1, -1)
-    prediction = liver_model.predict(input_as_numpy)
+    prediction = model.predict(input_as_numpy)
     return "Liver Disease Detected" if prediction[0] == 1 else "Healthy Liver"
-
-def predict_symptoms(text: str):
-    """
-    text: raw patient symptom description
-    """
-    if not nlp_model:
-        raise Exception("NLP Symptom model not found.")
-    
-    prediction = nlp_model.predict([text])[0]
-    probs = nlp_model.predict_proba([text])[0]
-    classes = nlp_model.classes_
-    
-    top_3_idx = np.argsort(probs)[-3:][::-1]
-    top_3_predictions = [{"disease": classes[i], "confidence": round(float(probs[i]) * 100, 2)} for i in top_3_idx]
-    
-    return {
-        "primary_prediction": str(prediction),
-        "top_predictions": top_3_predictions
-    }

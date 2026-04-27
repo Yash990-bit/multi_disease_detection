@@ -60,6 +60,15 @@ class LiverInput(BaseModel):
     total_protiens: float; albumin: float; albumin_and_globulin_ratio: float
 
 # --- Endpoints ---
+@app.get("/health")
+def health_check():
+    try:
+        # Test MongoDB connection
+        client.admin.command('ping')
+        return {"status": "ok", "mongodb": "connected", "api": "online"}
+    except Exception as e:
+        return {"status": "error", "mongodb": "disconnected", "error": str(e)}
+
 @app.get("/")
 def read_root():
     return {"status": "online", "model": "Sakhi AI Pro v1.0"}
@@ -138,7 +147,8 @@ def delete_history(log_id: str):
             raise HTTPException(status_code=404, detail="Record not found")
         return {"message": "Record deleted successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"ERROR: {str(e)}") # This will show in Render logs
+        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
