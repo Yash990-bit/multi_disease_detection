@@ -65,6 +65,7 @@ def read_root():
     return {"status": "online", "model": "Sakhi AI Pro v1.0"}
 
 @app.post("/predict/diabetes")
+@app.post("/predict/diabetes/")
 def api_predict_diabetes(data: DiabetesInput):
     try:
         features = [data.pregnancies, data.glucose, data.blood_pressure, data.skin_thickness, 
@@ -85,6 +86,7 @@ def api_predict_diabetes(data: DiabetesInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/heart")
+@app.post("/predict/heart/")
 def api_predict_heart(data: HeartInput):
     try:
         result = predict_heart_disease(data.dict())
@@ -100,6 +102,7 @@ def api_predict_heart(data: HeartInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/liver")
+@app.post("/predict/liver/")
 def api_predict_liver(data: LiverInput):
     try:
         features = [data.age, data.gender, data.total_bilirubin, data.direct_bilirubin,
