@@ -150,19 +150,6 @@ const Home = () => {
                                 Continuous learning algorithms ensure your risk Profile stays updated with the latest clinical trends.
                             </p>
                         </motion.div>
-
-                        <motion.div variants={itemVariants} className="glass p-10 rounded-[40px] group hover:-translate-y-2 transition-all duration-500 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/20">
-                            <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 mb-8 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
-                                <Activity className="w-8 h-8" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">NLP Smart Triage</h3>
-                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
-                                Describe your symptoms in natural language and let our NLP model suggest the right diagnostic path.
-                            </p>
-                            <Link to="/predict/symptoms" className="text-indigo-600 font-bold flex items-center gap-2 hover:gap-3 transition-all">
-                                Try Triage Engine <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </motion.div>
                     </motion.div>
                 </div>
             </section>
