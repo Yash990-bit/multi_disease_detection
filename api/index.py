@@ -8,7 +8,12 @@ import json
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-from .utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease, predict_symptoms
+# Ensure api folder is in path
+api_path = os.path.dirname(os.path.abspath(__file__))
+if api_path not in sys.path:
+    sys.path.append(api_path)
+
+from utils.predictor import predict_diabetes, predict_heart_disease, predict_liver_disease, predict_symptoms
 
 # --- MongoDB Setup ---
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")

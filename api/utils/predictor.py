@@ -3,18 +3,21 @@ import numpy as np
 import pandas as pd
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
+# Use absolute paths for the cloud
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(os.path.dirname(CURRENT_DIR), 'models')
 
-diabetes_model = joblib.load(os.path.join(MODELS_DIR, 'diabetes_model.sav'))
-heart_data = joblib.load(os.path.join(MODELS_DIR, 'heart_model.sav')) 
-liver_model = joblib.load(os.path.join(MODELS_DIR, 'liver_model.sav'))
+# Helper to load models safely
+def load_model(name):
+    path = os.path.join(MODELS_DIR, name)
+    if os.path.exists(path):
+        return joblib.load(path)
+    return None
 
-nlp_model_path = os.path.join(MODELS_DIR, 'nlp_symptom_model.pkl')
-if os.path.exists(nlp_model_path):
-    nlp_model = joblib.load(nlp_model_path)
-else:
-    nlp_model = None
+diabetes_model = load_model('diabetes_model.sav')
+heart_data = load_model('heart_model.sav')
+liver_model = load_model('liver_model.sav')
+nlp_model = load_model('nlp_symptom_model.pkl')
 def predict_diabetes(input_data):
     """
     input_data: list of 8 features
