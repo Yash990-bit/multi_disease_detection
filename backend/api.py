@@ -28,12 +28,16 @@ def serialize_doc(doc):
 app = FastAPI(
     title="Vitalise AI Pro API", 
     description="AI-powered medical risk analysis backend.",
-    root_path="/api" if os.environ.get("VERCEL") else ""
+    root_path="/api"
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://multi-disease-detection.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -140,4 +144,6 @@ def delete_history(log_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Render uses the PORT environment variable
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
