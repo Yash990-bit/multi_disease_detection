@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { CheckCircle2, AlertCircle, Loader2, Info, Activity } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { saveToLocalHistory } from '../utils/localHistory'
 
 const PredictDiabetes = () => {
     const [formData, setFormData] = useState({
@@ -29,6 +30,9 @@ const PredictDiabetes = () => {
         try {
             const response = await api.post('/predict/diabetes', formData)
             setPrediction(response.data.prediction)
+            
+            // Save to local history
+            saveToLocalHistory('Diabetes', formData, response.data.prediction)
         } catch (err) {
             setError("Backend Error: Connection Refused. Ensure FastAPI (api.py) is running on port 8000.")
         } finally {

@@ -7,6 +7,7 @@ import {
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
 } from 'recharts'
+import { getLocalHistory, deleteLocalHistoryItem } from '../utils/localHistory'
 
 const History = () => {
     const [logs, setLogs] = useState([])
@@ -17,19 +18,31 @@ const History = () => {
     const [activeTrend, setActiveTrend] = useState('Diabetes')
 
     const fetchHistory = async () => {
+        setLoading(true);
         try {
-            const response = await api.get('/history')
-            if (Array.isArray(response.data)) {
-                setLogs(response.data)
-            } else {
-                setLogs([])
-                setError("Received invalid payload format from the server.")
+            // First, get local history
+            const localData = getLocalHistory();
+            
+            // Try to get server history as well (optional)
+            try {
+                const response = await api.get('/history');
+                if (Array.isArray(response.data)) {
+                    // Combine local and server data, removing duplicates by ID
+                    const combined = [...localData, ...response.data];
+                    const unique = Array.from(new Map(combined.map(item => [item.id, item])).values());
+                    setLogs(unique.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+                } else {
+                    setLogs(localData);
+                }
+            } catch (err) {
+                // If server fails, just use local data
+                setLogs(localData);
             }
         } catch (err) {
-            console.error("Failed to fetch history", err)
-            setError("Cannot connect to diagnostic database. Server might be booting up or offline.")
+            console.error("Failed to fetch history", err);
+            setError("Unable to load history.");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
@@ -42,7 +55,12 @@ const History = () => {
 
         setDeletingId(id)
         try {
-            await api.delete(`/history/${id}`)
+            // Delete from local storage
+            deleteLocalHistoryItem(id);
+            
+            // Try to delete from server (optional)
+            try { await api.delete(`/history/${id}`); } catch (e) {}
+            
             setLogs(logs.filter(log => log.id !== id))
         } catch (err) {
             alert("Failed to delete record")

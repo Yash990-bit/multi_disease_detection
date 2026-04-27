@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { CheckCircle2, AlertCircle, Loader2, Heart, Activity } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { saveToLocalHistory } from '../utils/localHistory'
 
 const PredictHeart = () => {
     const [formData, setFormData] = useState({
@@ -29,6 +30,9 @@ const PredictHeart = () => {
         try {
             const response = await api.post('/predict/heart', formData)
             setPrediction(response.data.prediction)
+            
+            // Save to local history
+            saveToLocalHistory('Heart', formData, response.data.prediction)
         } catch (err) {
             setError("Backend Error: Please start the FastAPI server.")
         } finally {

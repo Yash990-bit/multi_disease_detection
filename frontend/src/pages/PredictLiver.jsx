@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { CheckCircle2, AlertCircle, Loader2, Microscope, Activity } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { saveToLocalHistory } from '../utils/localHistory'
 
 const PredictLiver = () => {
     const [formData, setFormData] = useState({
@@ -31,6 +32,9 @@ const PredictLiver = () => {
         try {
             const response = await api.post('/predict/liver', formData)
             setPrediction(response.data.prediction)
+            
+            // Save to local history
+            saveToLocalHistory('Liver', formData, response.data.prediction)
         } catch (err) {
             setError("Backend Error: Please start the FastAPI server.")
         } finally {
