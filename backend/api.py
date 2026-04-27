@@ -27,17 +27,12 @@ def serialize_doc(doc):
 # --- FastAPI App ---
 app = FastAPI(
     title="Vitalise AI Pro API", 
-    description="AI-powered medical risk analysis backend.",
-    root_path="/api"
+    description="AI-powered medical risk analysis backend."
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://multi-disease-detection.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

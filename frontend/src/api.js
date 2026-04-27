@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// We now use the proxy set in vercel.json
-const API_BASE_URL = '/api';
+// Brute-force: Hardcode the Render URL directly
+const API_BASE_URL = 'https://multi-disease-detection.onrender.com';
 
 const api = axios.create({
     baseURL: API_BASE_URL
